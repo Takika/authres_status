@@ -458,7 +458,7 @@ class authres_status extends rcube_plugin
                             }
 
                             if (!$title) {
-                                $title = $res['reason'];
+                                $title = $res['reason'] ?? 'dkim=unknown (error)';
                             }
                         }
                     }
