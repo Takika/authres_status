@@ -428,7 +428,7 @@ class authres_status extends rcube_plugin
                 $status = 0;
 
                 if ($uid) {
-                    $rcmail = rcmail::get_instance();
+                    $rcmail = rcube::get_instance();
                     if ($headers->others['dkim-signature'] ?? null && $rcmail->config->get('use_fallback_verifier')) {
                         if (!class_exists('Crypt_RSA')) {
                             $autoload = require __DIR__ . "/../../vendor/autoload.php";
@@ -436,7 +436,7 @@ class authres_status extends rcube_plugin
                         }
 
                         try {
-                          $dkimVerify = new DKIM_Verify($rcmail->imap->get_raw_body($uid));
+                          $dkimVerify = new DKIM_Verify($rcmail->storage->get_raw_body($uid));
                           $results = $dkimVerify->validate();
                         } catch(Exception $e) {
                           $results = array();
