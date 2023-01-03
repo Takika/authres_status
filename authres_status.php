@@ -424,12 +424,12 @@ class authres_status extends rcube_plugin
                         }
                     }
                 }
-            } elseif ($headers->others['dkim-signature'] ?? null || $headers->others['domainkey-signature'] ?? null) {
+            } elseif (($headers->others['dkim-signature'] ?? null) || ($headers->others['domainkey-signature'] ?? null)) {
                 $status = 0;
 
                 if ($uid) {
                     $rcmail = rcube::get_instance();
-                    if ($headers->others['dkim-signature'] ?? null && $rcmail->config->get('use_fallback_verifier')) {
+                    if (($headers->others['dkim-signature'] ?? null) && ($rcmail->config->get('use_fallback_verifier'))) {
                         if (!class_exists('Crypt_RSA')) {
                             $autoload = require __DIR__ . "/../../vendor/autoload.php";
                             $autoload->loadClass('Crypt_RSA'); // Preload for use in DKIM_Verify
@@ -503,7 +503,7 @@ class authres_status extends rcube_plugin
         }
 
         if (!$show_statuses || ($show_statuses & $status)) {
-            return '<img src="plugins/authres_status/images/' . $image . '" alt="' . $alt . '" title="' . $this->gettext($alt) . htmlentities($title) . '" class="authres-status-img" /> ';
+            return '<img src="plugins/authres_status/images/' . $image . '" alt="' . $alt . '" title="' . $this->gettext($alt) . htmlentities($title ?? '') . '" class="authres-status-img" /> ';
         }
 
         return '';
