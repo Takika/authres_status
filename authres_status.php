@@ -339,8 +339,7 @@ class authres_status extends rcube_plugin
         if (($results = ($headers->others['x-dkim-authentication-results'] ?? '')) && strpos($results, 'none') !== false) {
             $status = self::STATUS_NOSIG;
         } else {
-            $hasAuthenticationResultHeaders = (bool)$headers->others['authentication-results'];
-            if ($hasAuthenticationResultHeaders) {
+            if ($headers->others['authentication-results'] ?? null) {
                 $results = $this->rfc5451_extract_authresheader($headers->others['authentication-results']);
                 $status = 0;
                 $title = '';
