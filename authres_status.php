@@ -58,6 +58,7 @@ class authres_status extends rcube_plugin
     private $message_headers_done = false;
     private $trusted_mtas = [];
     private $uname;
+    private $debug = false;
 
     public function init()
     {
@@ -372,7 +373,7 @@ class authres_status extends rcube_plugin
                         /* Verify if its an author's domain signature or a third party
                         */
                         foreach ($results as $result) {
-                            $this->debug($result, 'authres_status->get_authentication_status result: ', true);
+                            $this->_debug($result, 'authres_status->get_authentication_status result: ', true);
                             if (
                                 !in_array($result['method'], array('auth', 'dkim', 'dmarc', 'domainkeys'))
                                 || !is_array($result['props'])
