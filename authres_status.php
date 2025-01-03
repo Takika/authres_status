@@ -57,6 +57,7 @@ class authres_status extends rcube_plugin
     private $img_status;
     private $message_headers_done = false;
     private $trusted_mtas = [];
+    private $uname;
 
     public function init()
     {
@@ -64,6 +65,7 @@ class authres_status extends rcube_plugin
 
         $rcmail = rcmail::get_instance();
         $this->load_config();
+        $this->uname = $rcmail->user->get_username();
 
         $this->add_hook('storage_init', array($this, 'storage_init'));
         $this->add_hook('messages_list', array($this, 'messages_list'));
@@ -229,9 +231,9 @@ class authres_status extends rcube_plugin
         }
 
         return $p;
-		}
-		
-		private function populate_message_headers($p){
+    }
+
+    private function populate_message_headers($p){
         /* We only have to check the headers once and this method is executed more than once,
         /* so let's cache the result
         */
@@ -241,7 +243,8 @@ class authres_status extends rcube_plugin
             $show_statuses = (int)rcmail::get_instance()->config->get('show_statuses');
             $this->img_status = $this->get_authentication_status($p['headers'], $show_statuses, (int)$_GET["_uid"]);
         }
-	}
+    }
+
     public function message_headers($p)
     {
         $this->populate_message_headers($p);
@@ -369,6 +372,7 @@ class authres_status extends rcube_plugin
                         /* Verify if its an author's domain signature or a third party
                         */
                         foreach ($results as $result) {
+                            $this->debug($result, 'authres_status->get_authentication_status result: ', true);
                             if (
                                 !in_array($result['method'], array('auth', 'dkim', 'dmarc', 'domainkeys'))
                                 || !is_array($result['props'])
@@ -377,9 +381,9 @@ class authres_status extends rcube_plugin
                             }
 
                             if ($result['method'] === 'auth') {
-                                $method_props = $result['props']['smtp'];
+                                $method_props = $result['props']['smtp'] ?? null;
                             } else {
-                                $method_props = $result['props']['header'];
+                                $method_props = $result['props']['header'] ?? null;
                             }
 
                             if (!isset($method_props)) {
@@ -549,4 +553,41 @@ class authres_status extends rcube_plugin
 
         return '';
     }
+
+    private function _debug($value, $key = '', $force = false)
+    {
+        if ($this->debug || $force) {
+            $trace           = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT);
+            $caller_trace    = $trace[0];
+            $caller_function = $trace[1]['function'];
+            $caller_line     = $caller_trace['line'];
+            $caller_file     = $caller_trace['file'];
+            $caller_file     = preg_replace("|.*/|", "", $caller_file);
+            $str             = sprintf("[%s:%d - %s] ", $caller_file, $caller_line, $caller_function);
+
+            $val_type = gettype($value);
+
+            switch ($val_type) {
+                case "object": {
+                    $old_value = $value;
+                    $value     = get_class($old_value);
+                    $str      .= $key . ' type = ' . $value;
+                    break;
+                }
+                default: {
+                    $old_value = $value;
+                    $value     = var_export($old_value, true);
+                    $str      .= $key. ' = ' .$value;
+                    break;
+                }
+            }
+
+            if ($this->uname) {
+                $str = sprintf("[%s] %s", $this->uname, $str);
+            }
+
+            rcmail::write_log($this->ID, $str);
+        }
+    }
+
 }
